@@ -1,0 +1,16 @@
+{
+  "name": "design-squad",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@bradygaster/squad-cli": "^0.8.18",
+    "@bradygaster/squad-sdk": "^0.8.18"
+  }
+}
