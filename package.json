@@ -3,6 +3,13 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "bin": {
+    "design-squad": "./bin/init.ts"
+  },
+  "files": [
+    "bin/",
+    "templates/"
+  ],
   "devDependencies": {
     "@types/bun": "latest"
   },

@@ -22,15 +22,28 @@ Available to every core member via shared skills:
 
 ## Quick Start
 
-```bash
-# Install dependencies
-bun install
+### Add to any project (one command)
 
-# Run the squad
+```bash
+npx github:your-org/design-squad init
+```
+
+This scaffolds `.squad/`, `squad.config.ts`, and `.squad-templates/` into your current directory. Then run:
+
+```bash
 npx squad
 ```
 
-### Use in another project
+> **Private repo?** Works automatically if you have GitHub access (SSH key or `gh auth`).
+
+### Run from this repo directly
+
+```bash
+bun install
+npx squad
+```
+
+### Manual setup (alternative)
 
 Copy the portable squad configuration into any repo:
 
