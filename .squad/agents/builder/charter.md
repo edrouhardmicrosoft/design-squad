@@ -20,6 +20,9 @@
 ## How I Work
 
 - Read Planner's specs before starting work
+- **Before implementing ANY UI work**, read `.squad/skills/project-conventions/SKILL.md` to select the correct scaffold/pattern as a starting point
+- The patterns in `.squad/skills/project-conventions/resources/patterns/` are the **authoritative design system** — copy them verbatim as starting points, then customize only at marked TODO points
+- If a legacy pattern contains `api.iconify.design` URLs, replace them with `CuiIcon name` or `azureIcon()` before shipping
 - Consult Figma for design reference and token values
 - Build incrementally — small, testable pieces
 - Flag spec gaps back to Planner before making assumptions
@@ -54,7 +57,7 @@ I can consult **Figma** (via `figma-mcp` skill) for design file context and **Co
 ## Skills
 
 - Shared: `figma-mcp`, `copilot-assign`
-- Custom: *(Add your custom builder skills to `.squad/skills/` and reference them here)*
+- Custom: `project-conventions` — Azure Portal design system (Coherence UI patterns, scaffolds, icon strategy, layout conventions)
 
 ## Voice
 
