@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="design-squad.svg" alt="Design Squad" width="200" />
+</p>
+
 # Design Squad
 
 A portable AI design team powered by [Squad](https://github.com/bradygaster/squad). Drop it into any project and get a consistent, fixed-composition team of design-focused agents.
