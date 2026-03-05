@@ -6,6 +6,9 @@
   "bin": {
     "design-squad": "./bin/init.ts"
   },
+  "scripts": {
+    "agentation:issue": "bun run ./bin/agentation-issue.ts"
+  },
   "files": [
     "bin/",
     "templates/"

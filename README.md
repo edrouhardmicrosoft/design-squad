@@ -8,21 +8,46 @@ A portable AI design team powered by [Squad](https://github.com/bradygaster/squa
 
 ## Team
 
-| Member | Role | Model |
-|--------|------|-------|
-| **Oracle** 🧿 | Strategic Advisor | `gpt-5.3-codex` |
-| **Researcher** 🔍 | Research & Discovery | configurable |
-| **Planner** 📐 | Spec & Flow Planning | configurable |
-| **Builder** 🔨 | Implementation | configurable |
+| Member            | Role                 | Model           |
+| ----------------- | -------------------- | --------------- |
+| **Oracle** 🧿     | Strategic Advisor    | `gpt-5.3-codex` |
+| **Researcher** 🔍 | Research & Discovery | configurable    |
+| **Planner** 📐    | Spec & Flow Planning | configurable    |
+| **Builder** 🔨    | Implementation       | configurable    |
 
 ### Squad Helpers
 
 Available to every core member via shared skills:
 
-| Helper | What it does |
-|--------|-------------|
-| **Figma** 🎨 | Connects to Figma MCP for design file context — components, tokens, layouts |
-| **Copilot** 🤖 | Assigns background coding tasks — scaffolding, CSS, codegen |
+| Helper         | What it does                                                                |
+| -------------- | --------------------------------------------------------------------------- |
+| **Figma** 🎨   | Connects to Figma MCP for design file context — components, tokens, layouts |
+| **Copilot** 🤖 | Assigns background coding tasks — scaffolding, CSS, codegen                 |
+
+## Agentation -> Copilot Issue Flow
+
+Use this when you want browser annotation feedback to become a GitHub issue routed to Copilot.
+
+### One-command issue creation
+
+```bash
+bun run agentation:issue \
+  --title "Fix nav overlap on mobile" \
+  --comment "Header nav overlaps logo at 375px on /home" \
+  --component "Header" \
+  --page "/home"
+```
+
+What this does:
+
+- Creates a GitHub issue in the current repo (or pass `--repo owner/repo`)
+- Applies label `squad:copilot`
+- Triggers the squad assignment workflow that routes work to the Copilot coding agent
+
+Requirements:
+
+- `gh` CLI authenticated (`gh auth login`)
+- Repo workflow secrets/config already set for Copilot assignment
 
 ## Quick Start
 
