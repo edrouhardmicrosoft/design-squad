@@ -43,6 +43,13 @@ Any squad member can assign background coding work to Copilot. Use this when des
 - Planner needs a prototype spun up quickly
 - Any member needs repetitive code work done in the background
 
+### Agentation-driven tasks
+When Builder triages Agentation annotations and delegates straightforward fixes:
+- Copilot receives a task spec sourced from the annotation (element, comment, context)
+- Implement the fix, open a PR, and include the annotation reference in the PR description
+- Builder (or the human) resolves the annotation after PR merge
+- Typical tasks: spacing fixes, color corrections, typo fixes, missing alt text, minor layout tweaks
+
 ## Anti-Patterns
 
 - Don't assign ambiguous tasks — be specific about inputs, outputs, and constraints

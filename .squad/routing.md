@@ -18,6 +18,7 @@ How to decide who handles what.
 |-------------|--------|-------------|
 | Design file context | Figma 🎨 | Need component specs, tokens, layout reference, asset info |
 | Background coding | Copilot 🤖 | Scaffolding, CSS, codegen, test generation, repetitive code |
+| Visual annotations | Agentation 🎯 | Browser-sourced UI feedback; Builder triages, delegates quick fixes to Copilot |
 
 ## Issue Routing
 
@@ -38,5 +39,6 @@ How to decide who handles what.
 4. **When two agents could handle it**, pick the one whose domain is the primary concern.
 5. **"Team, ..." → fan-out.** Spawn all relevant agents in parallel as `mode: "background"`.
 6. **Anticipate downstream work.** Research findings → spawn Planner. Specs ready → spawn Builder.
-7. **Helpers are skills, not routed agents.** Any core member can invoke Figma or Copilot via their shared skills.
+7. **Helpers are skills, not routed agents.** Any core member can invoke Figma, Copilot, or Agentation via their shared skills.
 8. **Oracle for the hard problems.** When the team is stuck, uncertain, or needs cross-validation — route to Oracle.
+9. **Agentation → Builder → Copilot.** When Builder triages annotations, straightforward fixes auto-delegate to Copilot. One invocation handles the whole pipeline.

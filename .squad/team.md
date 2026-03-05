@@ -25,6 +25,7 @@
 |------|------|-------|-------|
 | Figma | Helper | `.squad/skills/figma-mcp/SKILL.md` | Connects to Figma MCP; any core member can consult |
 | Copilot | Helper | `.squad/skills/copilot-assign/SKILL.md` | Background coding tasks; any core member can assign |
+| Agentation | Helper | `.squad/skills/agentation-mcp/SKILL.md` | Visual UI annotations from the browser; Builder triages, delegates simple fixes to Copilot |
 
 ## Project Context
 
