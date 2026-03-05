@@ -28,6 +28,16 @@ Available to every core member via shared skills:
 
 Use this when you want browser annotation feedback to become a GitHub issue routed to Copilot.
 
+### Do I need `design-squad init`?
+
+- **Recommended:** yes. `init` wires `.squad/` templates, required workflow files, and package scripts automatically.
+- **If you manually copy files:** it can still work, but you must ensure workflows and scripts exist yourself.
+- Run verification anytime with:
+
+```bash
+npx github:your-org/design-squad doctor
+```
+
 ### One-command issue creation
 
 ```bash
@@ -35,7 +45,9 @@ bun run agentation:issue \
   --title "Fix nav overlap on mobile" \
   --comment "Header nav overlaps logo at 375px on /home" \
   --component "Header" \
-  --page "/home"
+  --page "/home" \
+  --selector ".site-nav" \
+  --screenshot "https://example.com/snap.png"
 ```
 
 What this does:
@@ -43,11 +55,18 @@ What this does:
 - Creates a GitHub issue in the current repo (or pass `--repo owner/repo`)
 - Applies label `squad:copilot`
 - Triggers the squad assignment workflow that routes work to the Copilot coding agent
+- Captures optional metadata (`selector`, `screenshot`, `component`, `page`, `session`)
+- Falls back to a local markdown task file if GitHub is unavailable
 
 Requirements:
 
 - `gh` CLI authenticated (`gh auth login`)
 - Repo workflow secrets/config already set for Copilot assignment
+
+Fallback note:
+
+- Without GitHub access, feedback is saved under `.squad/agentation-fallback/`.
+- Full automation requires GitHub issue routing with `squad:copilot`.
 
 ## Quick Start
 

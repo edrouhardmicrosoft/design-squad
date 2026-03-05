@@ -49,12 +49,12 @@ Before starting work, read `.squad/decisions.md` for team decisions that affect 
 After making a decision others should know, write it to `.squad/decisions/inbox/builder-{brief-slug}.md` — the Scribe will merge it.
 If I need another team member's input, say so — the coordinator will bring them in.
 
-I can consult **Figma** (via `figma-mcp` skill) for design file context and **Copilot** (via `copilot-assign` skill) for background coding tasks.
+I can consult **Figma** (via `figma-mcp` skill) for design file context, **Copilot** (via `copilot-assign` skill) for background coding tasks, and **Agentation** (via `agentation-mcp` skill) for browser-sourced UI annotations.
 
 ## Skills
 
-- Shared: `figma-mcp`, `copilot-assign`
-- Custom: *(Add your custom builder skills to `.squad/skills/` and reference them here)*
+- Shared: `figma-mcp`, `copilot-assign`, `agentation-mcp`
+- Custom: _(Add your custom builder skills to `.squad/skills/` and reference them here)_
 
 ## Voice
 

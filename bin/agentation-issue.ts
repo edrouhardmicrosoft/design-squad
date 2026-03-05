@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "child_process";
+import { mkdirSync, writeFileSync } from "fs";
+import { dirname, resolve } from "path";
 
 type Args = {
   title?: string;
@@ -9,6 +11,9 @@ type Args = {
   component?: string;
   page?: string;
   session?: string;
+  selector?: string;
+  screenshot?: string;
+  fallbackFile?: string;
 };
 
 function printUsage() {
@@ -25,6 +30,9 @@ Options:
   --component   UI component name (optional)
   --page        Page or route (optional)
   --session     Agentation session id/name (optional)
+  --selector    CSS selector or element id from annotation (optional)
+  --screenshot  Screenshot URL/path for context (optional)
+  --fallback-file  File path for non-GitHub fallback output (optional)
   -h, --help    Show help
 `);
 }
@@ -53,6 +61,15 @@ function parseArgs(argv: string[]): Args {
       i++;
     } else if (key === "--session") {
       out.session = val;
+      i++;
+    } else if (key === "--selector") {
+      out.selector = val;
+      i++;
+    } else if (key === "--screenshot") {
+      out.screenshot = val;
+      i++;
+    } else if (key === "--fallback-file") {
+      out.fallbackFile = val;
       i++;
     }
   }
@@ -87,6 +104,8 @@ function buildBody(a: Required<Pick<Args, "comment">> & Args): string {
     `- Component: ${a.component || "(not provided)"}`,
     `- Page: ${a.page || "(not provided)"}`,
     `- Session: ${a.session || "(not provided)"}`,
+    `- Selector: ${a.selector || "(not provided)"}`,
+    `- Screenshot: ${a.screenshot || "(not provided)"}`,
     "",
     "### Routing",
     "- Label: `squad:copilot`",
@@ -94,6 +113,47 @@ function buildBody(a: Required<Pick<Args, "comment">> & Args): string {
   ];
 
   return lines.join("\n");
+}
+
+function slug(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+}
+
+function writeFallback(a: Required<Pick<Args, "title" | "comment">> & Args, reason: string) {
+  const fallbackPath =
+    a.fallbackFile || `.squad/agentation-fallback/${Date.now()}-${slug(a.title || "task")}.md`;
+  const absPath = resolve(process.cwd(), fallbackPath);
+  mkdirSync(dirname(absPath), { recursive: true });
+
+  const content = [
+    "# Agentation Feedback (GitHub fallback)",
+    "",
+    `- Reason: ${reason}`,
+    `- Created: ${new Date().toISOString()}`,
+    "",
+    "## Title",
+    a.title,
+    "",
+    "## Comment",
+    a.comment,
+    "",
+    "## Context",
+    `- Component: ${a.component || "(not provided)"}`,
+    `- Page: ${a.page || "(not provided)"}`,
+    `- Session: ${a.session || "(not provided)"}`,
+    `- Selector: ${a.selector || "(not provided)"}`,
+    `- Screenshot: ${a.screenshot || "(not provided)"}`,
+    "",
+    "## Next Step",
+    "Create a GitHub issue with label `squad:copilot` when GitHub access is available.",
+  ].join("\n");
+
+  writeFileSync(absPath, content, "utf8");
+  console.log(`GitHub unavailable. Wrote fallback task: ${fallbackPath}`);
 }
 
 function main() {
@@ -113,14 +173,14 @@ function main() {
 
   const auth = runGh(["auth", "status"]);
   if (!auth.ok) {
-    console.error("Error: gh is not authenticated. Run `gh auth login` first.");
-    process.exit(1);
+    writeFallback({ ...a, title: a.title, comment: a.comment }, "`gh auth status` failed");
+    process.exit(0);
   }
 
   const repo = a.repo || currentRepo();
   if (!repo) {
-    console.error("Error: could not determine repo. Pass --repo owner/name.");
-    process.exit(1);
+    writeFallback({ ...a, title: a.title, comment: a.comment }, "Could not determine repository");
+    process.exit(0);
   }
 
   const body = buildBody({ ...a, comment: a.comment });
@@ -138,9 +198,11 @@ function main() {
   ]);
 
   if (!create.ok) {
-    console.error("Failed to create issue.");
-    console.error(create.err.trim() || create.out.trim());
-    process.exit(1);
+    writeFallback(
+      { ...a, title: a.title, comment: a.comment },
+      create.err.trim() || create.out.trim() || "Issue creation failed"
+    );
+    process.exit(0);
   }
 
   console.log("Issue created and routed with `squad:copilot`.");
