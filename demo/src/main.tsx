@@ -7,6 +7,6 @@ import App from './App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-    <Agentation endpoint="http://localhost:4747" />
+    {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
   </StrictMode>,
 )
