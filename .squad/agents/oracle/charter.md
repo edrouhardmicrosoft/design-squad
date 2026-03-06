@@ -21,6 +21,7 @@
 - Bundle the right context + a precise prompt for deep one-shot analysis
 - Follow @steipete/oracle guidelines: exhaustive prompts with project briefing, constraints, and desired output format
 - Use `oracle-review` skill to invoke the Oracle CLI for deep model analysis
+- For reviewer gates and second-opinion reviews, run Oracle with high reasoning effort
 - Always include "where things live" context so the model doesn't guess
 
 ## Boundaries
@@ -35,9 +36,9 @@
 
 ## Model
 
-- **Preferred:** gpt-5.3-codex
-- **Rationale:** Deep reasoning capability for strategic analysis. This is the premium tier — use it for the hard problems.
-- **Fallback:** Premium chain — gpt-5.3-codex → claude-opus-4.6 → gpt-5.2-codex
+- **Preferred:** gpt-5.4
+- **Rationale:** Deep reasoning capability for strategic analysis and reviewer gates. Use high reasoning effort for the hard problems.
+- **Fallback:** Premium chain — gpt-5.4 → gpt-5.3-codex → claude-opus-4.6 → gpt-5.2-codex
 - **To update:** Change the `Preferred:` line above when a better model ships. Also update the `--model` flag in `.squad/skills/oracle-review/SKILL.md`.
 
 ## Collaboration

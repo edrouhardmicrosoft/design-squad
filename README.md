@@ -10,10 +10,10 @@ A portable AI design team powered by [Squad](https://github.com/bradygaster/squa
 
 | Member            | Role                 | Model           |
 | ----------------- | -------------------- | --------------- |
-| **Oracle** 🧿     | Strategic Advisor    | `gpt-5.3-codex` |
+| **Oracle** 🧿     | Strategic Advisor    | `gpt-5.4`       |
 | **Researcher** 🔍 | Research & Discovery | configurable    |
 | **Planner** 📐    | Spec & Flow Planning | configurable    |
-| **Builder** 🔨    | Implementation       | configurable    |
+| **Builder** 🔨    | Implementation       | `gpt-5.3-codex` |
 
 ### Squad Helpers
 
@@ -23,10 +23,11 @@ Available to every core member via shared skills:
 | -------------- | --------------------------------------------------------------------------- |
 | **Figma** 🎨   | Connects to Figma MCP for design file context — components, tokens, layouts |
 | **Copilot** 🤖 | Assigns background coding tasks — scaffolding, CSS, codegen                 |
+| **Agentation** 🎯 | Turns browser annotations into task contracts and GitHub routing            |
 
-## Agentation -> Copilot Issue Flow
+## Agentation -> GitHub Routing Flow
 
-Use this when you want browser annotation feedback to become a GitHub issue routed to Copilot.
+Use this when you want browser annotation feedback normalized into a task contract and auto-routed to the right squad label.
 
 ### Do I need `design-squad init`?
 
@@ -44,6 +45,9 @@ npx github:your-org/design-squad doctor
 bun run agentation:issue \
   --title "Fix nav overlap on mobile" \
   --comment "Header nav overlaps logo at 375px on /home" \
+  --annotation-id "annot-123" \
+  --severity "medium" \
+  --complexity "auto" \
   --component "Header" \
   --page "/home" \
   --selector ".site-nav" \
@@ -52,10 +56,11 @@ bun run agentation:issue \
 
 What this does:
 
+- Creates a machine-readable task contract under `.squad/agentation-tasks/`
+- Mirrors the latest lifecycle state under `.squad/orchestration-log/agentation/`
+- Auto-routes **straightforward** work to `squad:copilot`
+- Keeps **complex** or **unclear** work with `squad:builder`
 - Creates a GitHub issue in the current repo (or pass `--repo owner/repo`)
-- Applies label `squad:copilot`
-- Triggers the squad assignment workflow that routes work to the Copilot coding agent
-- Captures optional metadata (`selector`, `screenshot`, `component`, `page`, `session`)
 - Falls back to a local markdown task file if GitHub is unavailable
 
 Requirements:
@@ -66,7 +71,9 @@ Requirements:
 Fallback note:
 
 - Without GitHub access, feedback is saved under `.squad/agentation-fallback/`.
-- Full automation requires GitHub issue routing with `squad:copilot`.
+- Retry a failed handoff later with `--replay-task .squad/agentation-tasks/<task-id>.json`.
+- Use `--dry-run` to inspect routing before mutating GitHub.
+- Full automation for straightforward fixes requires GitHub issue routing with `squad:copilot`.
 
 ## Quick Start
 
@@ -116,7 +123,7 @@ Each core member can receive custom skills. Drop a `SKILL.md` into `.squad/skill
 
 ## Model Configuration
 
-Each agent's model is set in their charter file (`## Model → Preferred:`). To swap models when better ones ship, edit one line per agent. Fleet-wide fallback chains live in `squad.config.ts`.
+Each agent's model is set in their charter file (`## Model → Preferred:`). To swap models when better ones ship, edit one line per agent. Fleet-wide task rules and fallback chains live in `squad.config.ts`. Oracle's review path also runs through `oracle-review`, which is configured for `gpt-5.4` with `--reasoning-effort=high`.
 
 ## Structure
 
@@ -125,10 +132,10 @@ Each agent's model is set in their charter file (`## Model → Preferred:`). To 
 ├── team.md                     # Fixed roster
 ├── routing.md                  # Work type → agent routing
 ├── agents/
-│   ├── oracle/charter.md       # Strategic advisor (gpt-5.3-codex)
+│   ├── oracle/charter.md       # Strategic advisor (gpt-5.4)
 │   ├── researcher/charter.md   # Research & discovery
 │   ├── planner/charter.md      # Spec & flow planning
-│   ├── builder/charter.md      # Implementation
+│   ├── builder/charter.md      # Implementation (gpt-5.3-codex)
 │   └── scribe/charter.md       # Session logger (auto)
 ├── skills/
 │   ├── oracle-review/          # @steipete/oracle deep analysis

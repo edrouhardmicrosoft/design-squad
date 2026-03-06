@@ -14,6 +14,8 @@ source: "manual"
 
 Any squad member can assign background coding work to Copilot. Use this when design decisions need to be translated into code — component scaffolding, CSS implementation, design token codegen, test generation, etc.
 
+When the work came from Agentation, treat the JSON contract in `.squad/agentation-tasks/` as the source of truth for scope, expected result, and annotation metadata.
+
 ## Patterns
 
 ### Component scaffolding
@@ -45,13 +47,20 @@ Any squad member can assign background coding work to Copilot. Use this when des
 
 ### Agentation-driven tasks
 When Builder triages Agentation annotations and delegates straightforward fixes:
-- Copilot receives a task spec sourced from the annotation (element, comment, context)
+- Copilot receives a task contract sourced from the annotation (task id, element, comment, route, expected result)
 - Implement the fix, open a PR, and include the annotation reference in the PR description
 - Builder (or the human) resolves the annotation after PR merge
 - Typical tasks: spacing fixes, color corrections, typo fixes, missing alt text, minor layout tweaks
+
+### Working from the task contract
+- Read `.squad/agentation-tasks/<task-id>.json` before making assumptions
+- Respect `triage.expectedResult` and keep the change scoped to the annotated surface
+- Check `.squad/orchestration-log/agentation/` if you need the latest routing or fallback context
+- Preserve the `taskId` in your PR description or summary so the annotation can be resolved cleanly
 
 ## Anti-Patterns
 
 - Don't assign ambiguous tasks — be specific about inputs, outputs, and constraints
 - Don't use for architecture decisions (that's Oracle)
+- Don't silently change the route or expected result without updating the task contract
 - Don't skip review of Copilot's output — always verify against specs

@@ -12,13 +12,18 @@ tools:
 
 # Skill: agentation-mcp
 
-> Visual annotation feedback loop — humans annotate in the browser, agents triage and fix.
+> Visual annotation feedback loop — humans annotate in the browser, Builder turns feedback into a routable task contract.
 
 ## Context
 
-Any squad member can read annotations from Agentation, but **Builder is the primary consumer**. The typical flow is: a human annotates UI issues in the browser → Builder reads pending annotations → handles complex work directly → delegates straightforward fixes to Copilot via `copilot-assign` → Copilot opens a PR → annotation resolved.
+Any squad member can read annotations from Agentation, but **Builder is the primary consumer**. The default automation is:
 
-This skill already knows the Copilot pipeline. When a squad member invokes Agentation, they don't need to separately invoke Copilot — the handoff is built in.
+1. read pending annotations from the MCP server;
+2. normalize each item into a task contract;
+3. auto-route **straightforward** work to `squad:copilot`;
+4. keep **complex** or **unclear** work with `squad:builder`;
+5. persist the contract under `.squad/agentation-tasks/` and mirror the latest lifecycle state under `.squad/orchestration-log/agentation/`;
+6. create a GitHub issue or a local fallback file.
 
 ## Patterns
 
@@ -27,19 +32,22 @@ This skill already knows the Copilot pipeline. When a squad member invokes Agent
 - Each annotation includes the target element, coordinates, and the human's comment
 - Group annotations by page/component before acting on them
 
-### Triage and prioritize
-- **Complex** (layout rework, new components, interaction changes) → Builder handles directly
-- **Straightforward** (typos, spacing, color tweaks, missing alt text) → delegate to Copilot via `copilot-assign`
-- **Questions/unclear** → flag for human clarification, do not resolve
+### Create the task contract first
+- Run the issue bridge in dry-run mode before mutating GitHub:
+  - `node .squad/scripts/agentation-issue.mjs --dry-run ...`
+- Include annotation id, page, component, selector, and screenshot whenever available
+- Review the computed `complexity`, `label`, and `expectedResult`
 
-### Copilot handoff (built-in)
-When delegating to Copilot:
-1. Read the annotation details (element, comment, context)
-2. Formulate a clear task spec: what file, what change, what the expected result is
-3. Assign via `copilot-assign` — Copilot works in the background and opens a PR
-4. Once the PR is merged/approved, resolve the annotation with `agentation_resolve`
+### Routing rules
+- **Straightforward** (typos, spacing, color tweaks, missing alt text) → route to `squad:copilot`
+- **Complex** (layout rework, new components, interaction changes) → route to `squad:builder`
+- **Unclear** → keep with Builder until a human or Builder overrides the complexity
+- Use `--complexity` to override auto-triage when you already know the right route
 
-This is the default path for simple fixes. No separate Copilot invocation needed.
+### Recovery and replay
+- If GitHub is unavailable, the bridge writes `.squad/agentation-fallback/<task-id>.md`
+- Retry later with `node .squad/scripts/agentation-issue.mjs --replay-task .squad/agentation-tasks/<task-id>.json`
+- The JSON contract is the source of truth for what should be routed
 
 ### Resolve and dismiss
 - `agentation_resolve` — mark an annotation as fixed (after PR merge or direct fix)
@@ -66,6 +74,11 @@ Or configure manually — the server runs on port 4747 by default. Use `--port 8
 Verify setup:
 ```
 npx agentation-mcp doctor
+```
+
+Preview routing without creating an issue:
+```bash
+node .squad/scripts/agentation-issue.mjs --dry-run --title "Fix nav overlap" --comment "Header nav overlaps logo"
 ```
 
 ### React component
@@ -96,6 +109,7 @@ npm install agentation -D
 
 - Don't resolve annotations without actually fixing the issue — resolve means "done"
 - Don't batch-resolve without reviewing each annotation individually
-- Don't delegate complex design decisions to Copilot — those need Builder's judgment
+- Don't skip the task contract — the JSON file is what makes retries and observability possible
+- Don't delegate complex design decisions to Copilot — those stay with Builder
 - Don't ignore unclear annotations — flag them for human clarification
 - Don't leave the MCP server running in production — it's a dev-only tool

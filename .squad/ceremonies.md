@@ -56,8 +56,8 @@
 
 **Agenda:**
 1. Pull all pending annotations via `agentation_get_all_pending`
-2. Group by page/component and assess complexity
-3. Complex items (layout, new components, interactions) → Builder handles directly
-4. Straightforward items (typos, spacing, colors, alt text) → delegate to Copilot via `copilot-assign`
-5. Unclear items → flag for human clarification
+2. Normalize each item into a task contract under `.squad/agentation-tasks/`
+3. Review the computed route in `.squad/orchestration-log/agentation/` or by running the issue bridge with `--dry-run`
+4. Complex items (layout, new components, interactions) and unclear items stay with Builder
+5. Straightforward items (typos, spacing, colors, alt text) route to Copilot with the task contract attached
 6. Report summary: what was handled, what was delegated, what needs input

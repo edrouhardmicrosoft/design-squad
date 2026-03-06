@@ -1,81 +1,18 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "child_process";
-import { mkdirSync, writeFileSync } from "fs";
-import { dirname, resolve } from "path";
-
-type Args = {
-  title?: string;
-  comment?: string;
-  repo?: string;
-  component?: string;
-  page?: string;
-  session?: string;
-  selector?: string;
-  screenshot?: string;
-  fallbackFile?: string;
-};
-
-function printUsage() {
-  console.log(`
-Create a GitHub issue from Agentation feedback and route it to @copilot.
-
-Usage:
-  bun run agentation:issue --title "Fix nav overlap" --comment "Nav covers logo at 375px"
-
-Options:
-  --title       Issue title (required)
-  --comment     Annotation/comment text (required)
-  --repo        owner/repo (optional; defaults to current gh repo)
-  --component   UI component name (optional)
-  --page        Page or route (optional)
-  --session     Agentation session id/name (optional)
-  --selector    CSS selector or element id from annotation (optional)
-  --screenshot  Screenshot URL/path for context (optional)
-  --fallback-file  File path for non-GitHub fallback output (optional)
-  -h, --help    Show help
-`);
-}
-
-function parseArgs(argv: string[]): Args {
-  const out: Args = {};
-
-  for (let i = 0; i < argv.length; i++) {
-    const key = argv[i];
-    const val = argv[i + 1];
-
-    if (key === "--title") {
-      out.title = val;
-      i++;
-    } else if (key === "--comment") {
-      out.comment = val;
-      i++;
-    } else if (key === "--repo") {
-      out.repo = val;
-      i++;
-    } else if (key === "--component") {
-      out.component = val;
-      i++;
-    } else if (key === "--page") {
-      out.page = val;
-      i++;
-    } else if (key === "--session") {
-      out.session = val;
-      i++;
-    } else if (key === "--selector") {
-      out.selector = val;
-      i++;
-    } else if (key === "--screenshot") {
-      out.screenshot = val;
-      i++;
-    } else if (key === "--fallback-file") {
-      out.fallbackFile = val;
-      i++;
-    }
-  }
-
-  return out;
-}
+import {
+  appendHistory,
+  buildIssueBody,
+  createTaskFromArgs,
+  formatTaskSummary,
+  parseArgs,
+  parseIssueNumber,
+  persistTaskArtifacts,
+  printUsage,
+  readTaskFromFile,
+  writeFallbackArtifacts,
+} from "./agentation-flow.ts";
 
 function runGh(args: string[]): { ok: boolean; out: string; err: string } {
   const proc = spawnSync("gh", args, { encoding: "utf8" });
@@ -93,120 +30,118 @@ function currentRepo(): string | null {
   return repo || null;
 }
 
-function buildBody(a: Required<Pick<Args, "comment">> & Args): string {
-  const lines = [
-    "### Agentation Feedback",
-    "",
-    a.comment,
-    "",
-    "### Context",
-    `- Source: Agentation annotation`,
-    `- Component: ${a.component || "(not provided)"}`,
-    `- Page: ${a.page || "(not provided)"}`,
-    `- Session: ${a.session || "(not provided)"}`,
-    `- Selector: ${a.selector || "(not provided)"}`,
-    `- Screenshot: ${a.screenshot || "(not provided)"}`,
-    "",
-    "### Routing",
-    "- Label: `squad:copilot`",
-    "- Expected: Copilot coding agent picks up this issue via squad workflows",
-  ];
-
-  return lines.join("\n");
-}
-
-function slug(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .slice(0, 80);
-}
-
-function writeFallback(a: Required<Pick<Args, "title" | "comment">> & Args, reason: string) {
-  const fallbackPath =
-    a.fallbackFile || `.squad/agentation-fallback/${Date.now()}-${slug(a.title || "task")}.md`;
-  const absPath = resolve(process.cwd(), fallbackPath);
-  mkdirSync(dirname(absPath), { recursive: true });
-
-  const content = [
-    "# Agentation Feedback (GitHub fallback)",
-    "",
-    `- Reason: ${reason}`,
-    `- Created: ${new Date().toISOString()}`,
-    "",
-    "## Title",
-    a.title,
-    "",
-    "## Comment",
-    a.comment,
-    "",
-    "## Context",
-    `- Component: ${a.component || "(not provided)"}`,
-    `- Page: ${a.page || "(not provided)"}`,
-    `- Session: ${a.session || "(not provided)"}`,
-    `- Selector: ${a.selector || "(not provided)"}`,
-    `- Screenshot: ${a.screenshot || "(not provided)"}`,
-    "",
-    "## Next Step",
-    "Create a GitHub issue with label `squad:copilot` when GitHub access is available.",
-  ].join("\n");
-
-  writeFileSync(absPath, content, "utf8");
-  console.log(`GitHub unavailable. Wrote fallback task: ${fallbackPath}`);
-}
-
 function main() {
   const argv = process.argv.slice(2);
   if (argv.includes("-h") || argv.includes("--help")) {
-    printUsage();
+    printUsage("bun run agentation:issue");
     process.exit(0);
   }
 
-  const a = parseArgs(argv);
+  const args = parseArgs(argv);
+  let task = args.replayTask
+    ? appendHistory(readTaskFromFile(args.replayTask), "replayed", `Retry requested from ${args.replayTask}.`)
+    : null;
 
-  if (!a.title || !a.comment) {
-    printUsage();
-    console.error("Error: --title and --comment are required.");
-    process.exit(1);
+  if (!task) {
+    if (!args.title || !args.comment) {
+      printUsage("bun run agentation:issue");
+      console.error("Error: --title and --comment are required unless --replay-task is used.");
+      process.exit(1);
+    }
+
+    task = createTaskFromArgs(args);
+  }
+
+  if (args.repo) {
+    task = {
+      ...task,
+      routing: {
+        ...task.routing,
+        repo: args.repo,
+      },
+    };
+  }
+
+  task = persistTaskArtifacts(task);
+
+  if (args.dryRun) {
+    task = persistTaskArtifacts(
+      appendHistory(task, "dry-run", "Dry run requested; skipped GitHub issue creation.")
+    );
+    console.log("Dry run complete. No GitHub mutation performed.");
+    console.log(formatTaskSummary(task));
+    console.log(`Task contract: ${task.routing.taskFile}`);
+    console.log(`Flow log: ${task.routing.logFile}`);
+    process.exit(0);
   }
 
   const auth = runGh(["auth", "status"]);
   if (!auth.ok) {
-    writeFallback({ ...a, title: a.title, comment: a.comment }, "`gh auth status` failed");
+    task = writeFallbackArtifacts(task, "`gh auth status` failed");
+    console.log(`GitHub unavailable. Wrote fallback task: ${task.routing.fallbackFile}`);
+    console.log(`Task contract: ${task.routing.taskFile}`);
+    console.log(`Flow log: ${task.routing.logFile}`);
     process.exit(0);
   }
 
-  const repo = a.repo || currentRepo();
+  const repo = task.routing.repo || currentRepo();
   if (!repo) {
-    writeFallback({ ...a, title: a.title, comment: a.comment }, "Could not determine repository");
+    task = writeFallbackArtifacts(task, "Could not determine repository");
+    console.log(`GitHub unavailable. Wrote fallback task: ${task.routing.fallbackFile}`);
+    console.log(`Task contract: ${task.routing.taskFile}`);
+    console.log(`Flow log: ${task.routing.logFile}`);
     process.exit(0);
   }
 
-  const body = buildBody({ ...a, comment: a.comment });
+  task = persistTaskArtifacts({
+    ...task,
+    routing: {
+      ...task.routing,
+      repo,
+    },
+  });
+
   const create = runGh([
     "issue",
     "create",
     "--repo",
     repo,
     "--title",
-    a.title,
+    task.title,
     "--body",
-    body,
+    buildIssueBody(task),
     "--label",
-    "squad:copilot",
+    task.triage.label,
   ]);
 
   if (!create.ok) {
-    writeFallback(
-      { ...a, title: a.title, comment: a.comment },
-      create.err.trim() || create.out.trim() || "Issue creation failed"
-    );
+    task = writeFallbackArtifacts(task, create.err.trim() || create.out.trim() || "Issue creation failed");
+    console.log(`GitHub unavailable. Wrote fallback task: ${task.routing.fallbackFile}`);
+    console.log(`Task contract: ${task.routing.taskFile}`);
+    console.log(`Flow log: ${task.routing.logFile}`);
     process.exit(0);
   }
 
-  console.log("Issue created and routed with `squad:copilot`.");
-  console.log(create.out.trim());
+  const issueUrl = create.out.trim();
+  task = persistTaskArtifacts(
+    appendHistory(
+      {
+        ...task,
+        routing: {
+          ...task.routing,
+          issueUrl,
+          issueNumber: parseIssueNumber(issueUrl),
+        },
+      },
+      "github-routed",
+      `Created GitHub issue with label ${task.triage.label}.`
+    )
+  );
+
+  console.log(`Issue created and routed with \`${task.triage.label}\`.`);
+  console.log(issueUrl);
+  console.log(`Task contract: ${task.routing.taskFile}`);
+  console.log(`Flow log: ${task.routing.logFile}`);
 }
 
 main();

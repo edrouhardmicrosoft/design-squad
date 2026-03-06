@@ -12,8 +12,31 @@ const config: SquadConfig = {
   models: {
     defaultModel: 'claude-sonnet-4.5',
     defaultTier: 'standard',
+    taskRules: [
+      {
+        outputType: 'code',
+        model: 'gpt-5.3-codex',
+        conditions: {
+          workType: ['implementation', 'feature-dev', 'bug-fix', 'refactoring']
+        }
+      },
+      {
+        outputType: 'analysis',
+        model: 'gpt-5.4',
+        conditions: {
+          workType: ['deep-analysis', 'architecture']
+        }
+      },
+      {
+        outputType: 'decision',
+        model: 'gpt-5.4',
+        conditions: {
+          workType: ['deep-analysis', 'architecture']
+        }
+      }
+    ],
     fallbackChains: {
-      premium: ['gpt-5.3-codex', 'claude-opus-4.6', 'gpt-5.2-codex', 'claude-opus-4.5'],
+      premium: ['gpt-5.4', 'gpt-5.3-codex', 'claude-opus-4.6', 'gpt-5.2-codex', 'claude-opus-4.5'],
       standard: ['claude-sonnet-4.5', 'gpt-5.2-codex', 'claude-sonnet-4', 'gpt-5.2'],
       fast: ['claude-haiku-4.5', 'gpt-5.1-codex-mini', 'gpt-4.1', 'gpt-5-mini']
     },

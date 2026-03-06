@@ -39,3 +39,25 @@
 2. Root cause analysis
 3. What should change?
 4. Action items for next iteration
+
+---
+
+## Annotation Triage
+
+| Field | Value |
+|-------|-------|
+| **Trigger** | manual |
+| **When** | on-demand |
+| **Condition** | User says "check annotations", "triage annotations", or invokes Builder with Agentation |
+| **Facilitator** | Builder |
+| **Participants** | Builder, Copilot (background) |
+| **Time budget** | focused |
+| **Enabled** | ✅ yes |
+
+**Agenda:**
+1. Pull all pending annotations via `agentation_get_all_pending`
+2. Normalize each item into a task contract under `.squad/agentation-tasks/`
+3. Review the computed route in `.squad/orchestration-log/agentation/` or by running the issue bridge with `--dry-run`
+4. Complex items (layout, new components, interactions) and unclear items stay with Builder
+5. Straightforward items (typos, spacing, colors, alt text) route to Copilot with the task contract attached
+6. Report summary: what was handled, what was delegated, what needs input

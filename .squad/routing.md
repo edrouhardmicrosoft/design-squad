@@ -18,7 +18,7 @@ How to decide who handles what.
 |-------------|--------|-------------|
 | Design file context | Figma 🎨 | Need component specs, tokens, layout reference, asset info |
 | Background coding | Copilot 🤖 | Scaffolding, CSS, codegen, test generation, repetitive code |
-| Visual annotations | Agentation 🎯 | Browser-sourced UI feedback; Builder triages, delegates quick fixes to Copilot |
+| Visual annotations | Agentation 🎯 | Browser-sourced UI feedback; task contract auto-routes straightforward work to Copilot and keeps complex work with Builder |
 
 ## Issue Routing
 
@@ -28,8 +28,8 @@ How to decide who handles what.
 | `squad:oracle` | Strategic analysis and deep review | Oracle |
 | `squad:researcher` | Research and discovery work | Researcher |
 | `squad:planner` | Spec and flow planning | Planner |
-| `squad:builder` | Implementation work | Builder |
-| `squad:copilot` | Background coding task (via copilot-assign skill) | @copilot 🤖 |
+| `squad:builder` | Implementation work, plus complex or unclear Agentation tasks | Builder |
+| `squad:copilot` | Background coding task with a machine-readable task contract | @copilot 🤖 |
 
 ## Rules
 
@@ -41,4 +41,5 @@ How to decide who handles what.
 6. **Anticipate downstream work.** Research findings → spawn Planner. Specs ready → spawn Builder.
 7. **Helpers are skills, not routed agents.** Any core member can invoke Figma, Copilot, or Agentation via their shared skills.
 8. **Oracle for the hard problems.** When the team is stuck, uncertain, or needs cross-validation — route to Oracle.
-9. **Agentation → Builder → Copilot.** When Builder triages annotations, straightforward fixes auto-delegate to Copilot. One invocation handles the whole pipeline.
+9. **Agentation tasks become contracts first.** Normalize annotations into `.squad/agentation-tasks/` and mirror the latest state under `.squad/orchestration-log/agentation/` before mutating GitHub.
+10. **Straightforward → Copilot; complex or unclear → Builder.** Auto-triage can route directly, but Builder stays the safe fallback when confidence is low.

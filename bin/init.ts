@@ -97,7 +97,7 @@ function doctor(targetDir: string): number {
   let issues = 0;
   log("");
   log(`${CYAN}🩺 Design Squad Doctor${RESET}`);
-  log(`${DIM}Checking Agentation -> Copilot workflow readiness in ${targetDir}${RESET}`);
+  log(`${DIM}Checking Agentation triage -> GitHub routing readiness in ${targetDir}${RESET}`);
 
   const hasGh = runCommand("gh --version").ok;
   if (!hasGh) {
@@ -122,10 +122,20 @@ function doctor(targetDir: string): number {
   }
 
   const packageJsonPath = join(targetDir, "package.json");
-  let scriptWired = false;
   const scriptPath = join(targetDir, ".squad", "scripts", "agentation-issue.mjs");
+  const helperPath = join(targetDir, ".squad", "scripts", "agentation-flow.mjs");
   if (existsSync(scriptPath)) {
-    scriptWired = true;
+    success("Agentation issue bridge script scaffolded");
+  } else {
+    warn("Missing .squad/scripts/agentation-issue.mjs");
+    issues++;
+  }
+
+  if (existsSync(helperPath)) {
+    success("Agentation flow helper scaffolded");
+  } else {
+    warn("Missing .squad/scripts/agentation-flow.mjs");
+    issues++;
   }
 
   if (existsSync(packageJsonPath)) {
@@ -134,11 +144,15 @@ function doctor(targetDir: string): number {
       const issueScript = pkg.scripts?.["agentation:issue"] || "";
       if (issueScript) {
         success("package.json contains agentation:issue script");
-        if (issueScript.includes(".squad/scripts/agentation-issue.mjs") || issueScript.includes("bin/agentation-issue.ts")) {
-          scriptWired = true;
-        }
       } else {
         warn("package.json missing agentation:issue script");
+        issues++;
+      }
+
+      if (issueScript.includes(".squad/scripts/agentation-issue.mjs") || issueScript.includes("bin/agentation-issue.ts")) {
+        success("Agentation issue bridge script wiring detected");
+      } else {
+        warn("Agentation issue script is present but not wired to the expected bridge");
         issues++;
       }
     } catch {
@@ -147,13 +161,6 @@ function doctor(targetDir: string): number {
     }
   } else {
     warn("No package.json found; run bridge as `node .squad/scripts/agentation-issue.mjs ...`");
-  }
-
-  if (scriptWired) {
-    success("Agentation issue bridge script wiring detected");
-  } else {
-    warn("Missing Agentation issue bridge script wiring");
-    issues++;
   }
 
   const workflowsDir = join(targetDir, ".github", "workflows");
@@ -312,6 +319,7 @@ function run() {
   log("");
   info("Create Copilot-routed issue from Agentation feedback:");
   log(`  ${DIM}npm run agentation:issue -- --title "Fix X" --comment "Y"${RESET}`);
+  log(`  ${DIM}npm run agentation:issue -- --dry-run --title "Fix X" --comment "Y"${RESET}`);
 
   log("");
   info("Ready! Run your squad with:");

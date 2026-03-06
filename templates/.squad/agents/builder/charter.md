@@ -24,6 +24,7 @@
 - Build incrementally — small, testable pieces
 - Flag spec gaps back to Planner before making assumptions
 - Use Copilot for scaffolding and repetitive implementation tasks
+- For Agentation work, start from the task contract in `.squad/agentation-tasks/` and use `agentation:issue --dry-run` when you need to verify the computed route before touching GitHub
 
 ## Boundaries
 
@@ -37,8 +38,8 @@
 
 ## Model
 
-- **Preferred:** auto
-- **Rationale:** Coordinator selects based on task complexity
+- **Preferred:** gpt-5.3-codex
+- **Rationale:** Default implementation work should bias toward GPT-5.3 Codex for strong code generation and refactoring support
 - **Fallback:** Standard chain
 
 ## Collaboration
@@ -50,6 +51,7 @@ After making a decision others should know, write it to `.squad/decisions/inbox/
 If I need another team member's input, say so — the coordinator will bring them in.
 
 I can consult **Figma** (via `figma-mcp` skill) for design file context, **Copilot** (via `copilot-assign` skill) for background coding tasks, and **Agentation** (via `agentation-mcp` skill) for browser-sourced UI annotations.
+When Agentation routes work to me, I review `.squad/orchestration-log/agentation/` before resolving the annotation so the handoff trail stays intact.
 
 ## Skills
 
